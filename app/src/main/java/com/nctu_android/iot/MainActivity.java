@@ -2,6 +2,7 @@ package com.nctu_android.iot;
 
 import android.app.Activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,20 +31,42 @@ public class MainActivity extends Activity {
 
         final Button btn01 = (Button) this.findViewById(R.id.button01);
         final TextView tv01 = (TextView) this.findViewById(R.id.textview01);
+        final Button sp1 = (Button) this.findViewById(R.id.space1);
+        final Button sp2 = (Button) this.findViewById(R.id.space2);
+        final Button sp3 = (Button) this.findViewById(R.id.space3);
 
         final Handler handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 Bundle data = msg.getData();
-                tv01.setText(data.getString("value"));
+                String value = data.getString("value");
+                String[] distance = value.split(",");
+                tv01.setText(value);
+
+
+
+                if(Integer.parseInt(distance[0])>50)
+                    sp1.setBackgroundColor(Color.GREEN);
+                else
+                    sp1.setBackgroundColor(Color.RED);
+
+                if(Integer.parseInt(distance[1])>50)
+                    sp2.setBackgroundColor(Color.GREEN);
+                else
+                    sp2.setBackgroundColor(Color.RED);
+
+                if(Integer.parseInt(distance[2])>50)
+                    sp3.setBackgroundColor(Color.GREEN);
+                else
+                    sp3.setBackgroundColor(Color.RED);
             }
         };
 
         final Runnable runnable = new Runnable(){
             @Override
             public void run() {
-                String result = getUrlContent("http://nscl.ngrok.io/m2m/applications/SmartMeter/containers/blablabla/contentInstances/latest");
+                String result = getUrlContent("http://nscl.ngrok.io/m2m/applications/tttttttest/containers/bbbbbbbbbbbla/contentInstances/latest");
 
                 Message msg = new Message();
                 Bundle data = new Bundle();
@@ -70,6 +93,8 @@ public class MainActivity extends Activity {
      */
     private String getUrlContent(String url) {
 
+
+
         HttpGet getRequest = new HttpGet(url);
         getRequest.addHeader("User-Agent", " Mozilla/5.0 (Windows NT 6.3; WOW64; rv:32.0) Gecko/20100101 Firefox/32.0");
         try {
@@ -95,12 +120,11 @@ public class MainActivity extends Activity {
                 String distance = new String(temp, "UTF-8");
 
                 JSONObject data = new JSONObject(distance);
-                String distance1 = data.getString("distance1");
-                String distance2 = data.getString("distance2");
-                String distance3 = data.getString("distance3");
+                String distance1 = data.getString("d0");
+                String distance2 = data.getString("d1");
+                String distance3 = data.getString("d2");
 
-
-                return "distance1: "+distance1+"\ndistance2: "+distance2+"\ndistance3: "+distance3;
+                return distance1+","+distance2+","+distance3;
 
             } else {
                 return "讀取失敗：\n"+response.getStatusLine().getStatusCode();
