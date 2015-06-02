@@ -3,6 +3,7 @@
     package="com.nctu_android.iot" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
         android:allowBackup="true"
@@ -22,6 +23,7 @@
             android:name=".BookPage"
             android:label="@string/title_activity_book_page" >
         </activity>
+        <service android:name=".bookService"/>
     </application>
 
 </manifest>

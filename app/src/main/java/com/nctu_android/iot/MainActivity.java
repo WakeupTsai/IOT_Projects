@@ -3,6 +3,7 @@ package com.nctu_android.iot;
 import android.app.Activity;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,8 @@ import org.json.JSONObject;
 
 
 public class MainActivity extends Activity {
+    SQLiteDatabase db;
+    ImageButton btn01;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,11 +36,20 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
 
+        //開啟db
+        DBOpenHelper openhelper = new DBOpenHelper(this);
+        db = openhelper.getWritableDatabase();
 
-        final ImageButton btn01 = (ImageButton) this.findViewById(R.id.button01);
+
+        btn01 = (ImageButton) this.findViewById(R.id.button01);
         final Button sp1 = (Button) this.findViewById(R.id.space1);
         final Button sp2 = (Button) this.findViewById(R.id.space2);
         final Button sp3 = (Button) this.findViewById(R.id.space3);
+
+        //service
+        final Intent intent = new Intent();
+        intent.setClass(MainActivity.this, bookService.class);
+        startService(intent);
 
         //將收集到的資訊做處理
         final Handler handler = new Handler(){
@@ -49,25 +61,28 @@ public class MainActivity extends Activity {
                 //String value="70,50,20";
                 String[] distance = value.split(",");
 
-
                 if(Integer.parseInt(distance[0])>50) {
+                    ParkDB.editStatus(db,1,0);
                     sp1.getBackground().setColorFilter(0xFF00FF00, android.graphics.PorterDuff.Mode.MULTIPLY );
                     sp1.setOnClickListener(new Button.OnClickListener(){
                         @Override
                         public void onClick(View v) {
-                            Toast.makeText(MainActivity.this, "this space is empty", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "unoccupied", Toast.LENGTH_SHORT).show();
                         }
 
                     });
                 }
                 else {
+                    ParkDB.editStatus(db,1,1);
                     sp1.getBackground().setColorFilter(0xFFFF0000, android.graphics.PorterDuff.Mode.MULTIPLY );
                     sp1.setOnClickListener(new Button.OnClickListener(){
 
                         @Override
                         public void onClick(View v) {
                             Intent intent = new Intent();
+                            intent.putExtra("Park_id", 1);
                             intent.setClass(MainActivity.this,BookPage.class);
+                            db.close();
                             startActivity(intent);
                         }
 
@@ -75,23 +90,27 @@ public class MainActivity extends Activity {
                 }
 
                 if(Integer.parseInt(distance[1])>50) {
+                    ParkDB.editStatus(db,2,0);
                     sp2.getBackground().setColorFilter(0xFF00FF00, android.graphics.PorterDuff.Mode.MULTIPLY );
                     sp2.setOnClickListener(new Button.OnClickListener(){
                         @Override
                         public void onClick(View v) {
-                            Toast.makeText(MainActivity.this, "this space is empty", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "unoccupied", Toast.LENGTH_SHORT).show();
                         }
 
                     });
                 }
                 else {
+                    ParkDB.editStatus(db,2,1);
                     sp2.getBackground().setColorFilter(0xFFFF0000, android.graphics.PorterDuff.Mode.MULTIPLY );
                     sp2.setOnClickListener(new Button.OnClickListener(){
 
                         @Override
                         public void onClick(View v) {
                             Intent intent = new Intent();
+                            intent.putExtra("Park_id", 2);
                             intent.setClass(MainActivity.this,BookPage.class);
+                            db.close();
                             startActivity(intent);
                         }
 
@@ -99,23 +118,27 @@ public class MainActivity extends Activity {
                 }
 
                 if(Integer.parseInt(distance[2])>50) {
+                    ParkDB.editStatus(db,3,0);
                     sp3.getBackground().setColorFilter(0xFF00FF00, android.graphics.PorterDuff.Mode.MULTIPLY );
                     sp3.setOnClickListener(new Button.OnClickListener(){
                         @Override
                         public void onClick(View v) {
-                            Toast.makeText(MainActivity.this, "this space is empty", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "unoccupied", Toast.LENGTH_SHORT).show();
                         }
 
                     });
                 }
                 else {
+                    ParkDB.editStatus(db,3,1);
                     sp3.getBackground().setColorFilter(0xFFFF0000, android.graphics.PorterDuff.Mode.MULTIPLY );
                     sp3.setOnClickListener(new Button.OnClickListener(){
 
                         @Override
                         public void onClick(View v) {
                             Intent intent = new Intent();
+                            intent.putExtra("Park_id", 3);
                             intent.setClass(MainActivity.this,BookPage.class);
+                            db.close();
                             startActivity(intent);
                         }
 
@@ -152,24 +175,19 @@ public class MainActivity extends Activity {
         final Handler refreshData= new Handler();
         final Runnable r = new Runnable() {
             public void run() {
-                Toast.makeText(getApplicationContext(),"Refresh",Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"Refresh",Toast.LENGTH_SHORT).show();
                 new Thread(runnable).start();
                 refreshData.postDelayed(this, period);
             }
         };
         refreshData.postDelayed(r, delay);
+
+
     }
 
 
-
-    /**
-     * 獲取url對應的網頁內容
-     * @param url
-     * @return
-     */
+    //從指定的url抓取json檔並分析
     private String getUrlContent(String url) {
-
-
 
         HttpGet getRequest = new HttpGet(url);
         getRequest.addHeader("User-Agent", " Mozilla/5.0 (Windows NT 6.3; WOW64; rv:32.0) Gecko/20100101 Firefox/32.0");
@@ -203,11 +221,27 @@ public class MainActivity extends Activity {
                 return distance1+","+distance2+","+distance3;
 
             } else {
-                return "讀取失敗1：\n"+response.getStatusLine().getStatusCode();
+                //return "讀取失敗1：\n"+response.getStatusLine().getStatusCode();
+                Toast.makeText(MainActivity.this,"Can not get information from internet.",Toast.LENGTH_SHORT).show();
+                return "-1,-1,-1";
             }
         } catch (Exception e) {
-            return "讀取失敗2:\n"+e.toString();
+            //return "讀取失敗2:\n"+e.toString();
+            Toast.makeText(MainActivity.this,"Can not get information from internet.",Toast.LENGTH_SHORT).show();
+            return "-1,-1,-1";
         }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        db.close();
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        db.close();
+    }
+
 
 }
