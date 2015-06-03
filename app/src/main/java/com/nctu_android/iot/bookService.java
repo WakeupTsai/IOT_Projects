@@ -75,7 +75,7 @@ public class bookService extends Service {
             String value = data.getString("value");
             //String value="20,50,70";
 
-            //Toast.makeText(bookService.this, "!!!!!!!!!!!!!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(bookService.this, "1", Toast.LENGTH_SHORT).show();
 
             String[] distance = value.split(",");
 
@@ -188,12 +188,14 @@ public class bookService extends Service {
         String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
 
+
         //Instantiate the Notification
         int icon = android.R.drawable.ic_dialog_alert;
         CharSequence tickerText = "您預約的車位空出來了";
         long when = System.currentTimeMillis();
 
         Notification notification = new Notification(icon, tickerText, when);
+        notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
         //Define the Notification's expanded message and Intent
         Context context = getApplicationContext();

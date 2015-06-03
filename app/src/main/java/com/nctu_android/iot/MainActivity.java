@@ -170,8 +170,9 @@ public class MainActivity extends Activity {
         });
 
         //定期自動更新資料
-        final int delay = 1000; // 1 second
+        final int delay = 500; // 0.5 second
         final int period = 60000; // 60 second
+        //final int period = 180000; // 3 mins
         final Handler refreshData= new Handler();
         final Runnable r = new Runnable() {
             public void run() {
@@ -231,6 +232,16 @@ public class MainActivity extends Activity {
             return "-1,-1,-1";
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Toast.makeText(MainActivity.this,"Resumeeee",Toast.LENGTH_SHORT).show();
+        //開啟db
+        DBOpenHelper openhelper = new DBOpenHelper(this);
+        db = openhelper.getWritableDatabase();
+    }
+
 
     @Override
     protected void onPause() {
